@@ -32,7 +32,7 @@ class FakturaTests {
    void testFaktura() throws SQLException {
       testProductCatalogue();
       final Faktura faktura = new Faktura();
-      faktura.setBuyer("Jan Kowalski", "ul. Kowalska 1\n00-000 Kowalewo", "000-000-00-00");
+      faktura.setBuyer("Jan Kowalski", "ul. Kowalska 1", "00-000 Kowalewo", "000-000-00-00");
       faktura.addElement(new Element(productCatalogue.getProduct(1), 2));
       faktura.addElement(new Element(productCatalogue.getProduct(2), 1));
       faktura.addElement(new Element(productCatalogue.getProduct(3), 1));
@@ -41,19 +41,19 @@ class FakturaTests {
    @Test
    void testPDF() throws SQLException, DocumentException, IOException {
       testProductCatalogue();
-      final FakturaPDF faktura = new FakturaPDF();
-      faktura.setBuyer("Jan Kowalski", "ul. Kowalska 1\n00-000 Kowalewo", "000-000-00-00");
+      final Faktura faktura = new Faktura();
+      faktura.setBuyer("Jan Kowalski", "ul. Kowalska 1", "00-000 Kowalewo", "000-000-00-00");
       faktura.addElement(new Element(productCatalogue.getProduct(1), 2));
       faktura.addElement(new Element(productCatalogue.getProduct(2), 1));
       faktura.addElement(new Element(productCatalogue.getProduct(3), 1));
-      faktura.createPdf();
+      new FakturaPDF(faktura).createPdf("test.pdf");
    }
 
    @Test
    void testConsoleHandler() throws SQLException, IOException {
       testConnection();
       final Reader reader = new StringReader("1 2\n2 1\n3 1\n\nJan Kowalski\nul. Kowalska 1 00-000 Kowalewo\n000-000-00-00\n");
-      final ConsoleHandler consoleHandler = new ConsoleHandler(connection,reader);
+      final ConsoleHandler consoleHandler = new ConsoleHandler(connection, reader);
       consoleHandler.start();
       reader.close();
    }

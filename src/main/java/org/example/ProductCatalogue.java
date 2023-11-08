@@ -15,7 +15,7 @@ public class ProductCatalogue {
    private final Connection connection;
 
    /**
-    * @param connection Connection to database
+    * @param connection Connection to database needed for retrieving products
     */
    public ProductCatalogue(final Connection connection) {
       this.connection = connection;

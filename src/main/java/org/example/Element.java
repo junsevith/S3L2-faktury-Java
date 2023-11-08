@@ -26,6 +26,7 @@ public class Element {
    public int getProductId() {
       return product.getId();
    }
+
    /**
     * @return Product name
     */

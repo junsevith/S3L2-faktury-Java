@@ -11,31 +11,14 @@ public class Faktura {
    /**
     * Faktura id.
     */
-   Integer fakturaId = ThreadLocalRandom.current().nextInt(100_000, 999_999);
+   private final Integer fakturaId = ThreadLocalRandom.current().nextInt(100_000, 999_999);
+
    /**
-    * Seller name.
+    * Seller data.
     */
-   String sellerName = "Milk Corp.";
-   /**
-    * Seller address.
-    */
-   String sellerAddress = "ul. Mleczna 1\n00-000 Mleczno";
-   /**
-    * Seller NIP.
-    */
-   String sellerNip = "000-000-00-00";
-   /**
-    * Buyer name.
-    */
-   String buyerName;
-   /**
-    * Buyer address.
-    */
-   String buyerAddress;
-   /**
-    * Buyer NIP.
-    */
-   String buyerNip;
+   private final Entity seller = Entity.milkCorp();
+
+   private Entity buyer;
    /**
     * Elements of faktura.
     */
@@ -57,11 +40,28 @@ public class Faktura {
     * @param address Buyer address
     * @param nip     Buyer NIP
     */
-   public void setBuyer(final String name, final String address, final String nip) {
-      buyerName = name;
-      buyerAddress = address;
-      buyerNip = nip;
+   public void setBuyer(final String name, final String street, final String city, final String nip) {
+      buyer = new Entity(name, street, city, nip);
    }
 
+   public int getId() {
+      return fakturaId;
+   }
+
+   public Entity getSeller() {
+      return seller;
+   }
+
+   public Entity getBuyer() {
+      return buyer;
+   }
+
+   public List<Element> getElements() {
+      return elements;
+   }
+
+   public double getSum() {
+      return elements.stream().mapToDouble(Element::getPrice).sum();
+   }
 
 }

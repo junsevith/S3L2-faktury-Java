@@ -13,18 +13,12 @@ import java.util.Scanner;
  * Allows user to add products to faktura and then generates a pdf file.
  */
 public class ConsoleHandler {
-   /**
-    * Connection to database.
-    */
-   private final Connection connection;
-   /**
-    * Product catalogue that provides access to products.
-    */
-   private final ProductCatalogue productCatalogue;
+
+   private final ElementParser elementParser;
    /**
     * Faktura on which we are working.
     */
-   private final FakturaPDF faktura = new FakturaPDF();
+   private final Faktura faktura = new Faktura();
    /**
     * Reader to read input from.
     */
@@ -35,8 +29,7 @@ public class ConsoleHandler {
     * @param reader     Reader to read input from
     */
    public ConsoleHandler(final Connection connection, final Reader reader) {
-      this.connection = connection;
-      this.productCatalogue = new ProductCatalogue(connection);
+      this.elementParser = new ElementParser(connection);
       this.reader = reader;
    }
 
@@ -54,7 +47,7 @@ public class ConsoleHandler {
          }
          Element element;
          try {
-            element = parseInput(string);
+            element = elementParser.parse(string);
          } catch (SQLException e) {
             System.out.println("Nie udało się pobrać produktu");
             continue;
@@ -68,15 +61,17 @@ public class ConsoleHandler {
       System.out.println("Podaj dane kupującego");
       System.out.println("Imię i nazwisko:");
       final String name = scanner.nextLine();
-      System.out.println("Adres:");
-      final String address = scanner.nextLine();
+      System.out.println("Ulica:");
+      final String street = scanner.nextLine();
+      System.out.println("Miasto:");
+      final String city = scanner.nextLine();
       System.out.println("NIP:");
       final String nip = scanner.nextLine();
-      faktura.setBuyer(name, address, nip);
+      faktura.setBuyer(name, street, city, nip);
 
       System.out.println("Gotowe!");
       try {
-         faktura.createPdf();
+         new FakturaPDF(faktura).createPdf();
       } catch (IOException | DocumentException e) {
          System.out.println("Nie udało się wygenerować pliku PDF");
       } finally {
@@ -86,26 +81,4 @@ public class ConsoleHandler {
       scanner.close();
    }
 
-   /**
-    * Parses input string and returns new Element object.
-    *
-    * @param input Input string
-    * @return Element
-    * @throws SQLException             When product cannot be found matching input
-    * @throws IllegalArgumentException When input is in wrong format
-    */
-   public Element parseInput(final String input) throws SQLException{
-      final String[] split = input.split(" ");
-      if (split.length != 2) {
-         throw new IllegalArgumentException("Niepoprawny format danych");
-      }
-      ProductCatalogue.Product product;
-      try {
-         product = productCatalogue.getProduct(Integer.parseInt(split[0]));
-      } catch (NumberFormatException e) {
-         product = productCatalogue.getProduct(split[0]);
-      }
-      final int quantity = Integer.parseInt(split[1]);
-      return new Element(product, quantity);
-   }
 }
