@@ -3,7 +3,17 @@ package org.example;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/*
+   * Klasa używana do tworzenia instancji klasy Element na podstawie stringa podanego przez użytkownika
+   *
+   * Creator:
+   *   Tworzy instancje klasy Element, ponieważ posiada dane inicjalizujące dla Elementu
+   *   Tworzy instancje klasy ProductCatalogue, ponieważ bezpośrednio jej używa
+ */
 public class ElementParser {
+   /**
+    * Catalogue of products.
+    */
    private final ProductCatalogue productCatalogue;
 
    /**

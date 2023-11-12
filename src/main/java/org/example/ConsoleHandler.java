@@ -1,16 +1,15 @@
 package org.example;
 
-import com.itextpdf.text.DocumentException;
-
-import java.io.IOException;
 import java.io.Reader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
- * Handles console input.
- * Allows user to add products to faktura and then generates a pdf file.
+ * Prosta aplikacja konsolowa pozwalająca na dodawanie i zapisywanie faktur.
+ * Aby uniknąć niskiej spójności, zastosowano pure fabrication, i stworzono klasę ElementParser,
+ * która zajmuje się zamienianiem stringa na obiekt Element.
+ * Zastosowano Dependency inversion i utworzono interfejs FakturaWriter, który jest implementowany przez klasy FakturaPDF i FakturaBD.
  */
 public class ConsoleHandler {
 
@@ -68,15 +67,20 @@ public class ConsoleHandler {
       System.out.println("NIP:");
       final String nip = scanner.nextLine();
       faktura.setBuyer(name, street, city, nip);
+      System.out.println("Podaj nazwę pliku: (puste - domyślna nazwa)");
+      final String filename = scanner.nextLine();
 
       System.out.println("Gotowe!");
-      try {
-         new FakturaPDF(faktura).createPdf();
-      } catch (IOException | DocumentException e) {
-         System.out.println("Nie udało się wygenerować pliku PDF");
-      } finally {
-         System.out.println("Wygnerowano plik PDF");
+
+      FakturaWriter fakturaWriter;
+      if (filename.isEmpty()) {
+         fakturaWriter = new FakturaPDF();
+      } else {
+         fakturaWriter = new FakturaPDF(filename);
       }
+      fakturaWriter.write(faktura);
+
+
 
       scanner.close();
    }

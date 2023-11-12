@@ -13,29 +13,40 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Handles saving faktura to pdf file.
+ * Klasa obsługująca zapis faktury do pliku pdf.
+ * Aby zwiększyć spójność, wydzielono tę klasę z Faktura, wykorzystując Pure Fabrication.
  */
-public class FakturaPDF {
+public class FakturaPDF implements FakturaWriter {
 
    /**
     * Font used in document.
     */
-   private final Font font;
+   private Font font;
    /**
     * Bold font used in document.
     */
-   private final Font fontBold;
+   private Font fontBold;
+
+   private String filename;
+
 
    /**
     * Decimal format used in document.
     */
    private final DecimalFormat decimalFormat = new DecimalFormat("0.00zł");
 
-   private final Faktura faktura;
+   public FakturaPDF() {
+      InitializeFonts();
+   }
+   public FakturaPDF(String filename) {
+      InitializeFonts();
+      this.filename = filename;
+   }
 
-   public FakturaPDF(Faktura faktura) {
-      this.faktura = faktura;
-
+   /**
+    * Initializes fonts.
+    */
+   private void InitializeFonts() {
       BaseFont bf;
       BaseFont bfBold;
       Font font;
@@ -60,30 +71,31 @@ public class FakturaPDF {
 
    /**
     * Creates a pdf file from the data in the object.
-    * File gets default name faktura{id}.pdf
-    * @throws IOException      When file cannot be created
-    * @throws DocumentException When cant add elements to document
     */
-   public void createPdf() throws IOException, DocumentException {
-      createPdf("faktura" + faktura.getId());
-   }
-   /**
-    * Creates a pdf file from the data in the object.
-    *
-    * @throws IOException       When file cannot be created
-    * @throws DocumentException When cant add elements to document
-    */
-   public void createPdf(String filename) throws IOException, DocumentException {
+   @Override
+   public void write(Faktura faktura) {
       final Document document = new Document();
-      PdfWriter.getInstance(document, Files.newOutputStream(java.nio.file.Paths.get(filename + ".pdf")));
+      if (filename == null){
+         filename = "faktura" + faktura.getId() + ".pdf";
+      }
+      try {
+         PdfWriter.getInstance(document, Files.newOutputStream(java.nio.file.Paths.get(filename)));
+      } catch (IOException | DocumentException e) {
+         System.out.println("Cannot create pdf file: " + e.getMessage());
+         return;
+      }
 
       document.open();
-      document.add(new Paragraph("Milk Corp. ///\n\n", FontFactory.getFont(FontFactory.TIMES, 20, Font.BOLD)));
-      document.add(new Paragraph("Faktura VAT nr. " + faktura.getId() + "\n", FontFactory.getFont(FontFactory.HELVETICA, 14, Font.BOLD)));
-      document.add(new Paragraph("   Data wystawienia: " + LocalDate.now() + "\n\n", font));
-      document.add(sellerBuyerTable());
-      document.add(new Paragraph("\n\n"));
-      document.add(productsTable());
+      try {
+         document.add(new Paragraph("Milk Corp. ///\n\n", FontFactory.getFont(FontFactory.TIMES, 20, Font.BOLD)));
+         document.add(new Paragraph("Faktura VAT nr. " + faktura.getId() + "\n", fontBold));
+         document.add(new Paragraph("   Data wystawienia: " + LocalDate.now() + "\n\n", font));
+         document.add(sellerBuyerTable(faktura.getSeller(), faktura.getBuyer()));
+         document.add(new Paragraph("\n\n"));
+         document.add(productsTable(faktura.getElements()));
+      } catch (DocumentException e) {
+         System.out.println("Cannot write to pdf file: " + e.getMessage());
+      }
       document.close();
    }
 
@@ -92,16 +104,14 @@ public class FakturaPDF {
     *
     * @return PdfPTable
     */
-   private PdfPTable sellerBuyerTable() {
-      Entity seller = faktura.getSeller();
-      Entity buyer = faktura.getBuyer();
+   private PdfPTable sellerBuyerTable(Entity seller, Entity buyer) {
 
       if (seller == null || buyer == null) {
          throw new IllegalArgumentException("Seller or buyer is not set");
       }
 
-      final String sellerString = seller.getName() + "\n" + seller.getAddressStreet()  + "\n" + seller.getAddressCity() + "\nNIP: " + seller.getNip();
-      final String buyerString = buyer.getName() + "\n" + buyer.getAddressStreet()  + "\n" + buyer.getAddressCity() + "\nNIP: " + buyer.getNip();
+      final String sellerString = seller.getName() + "\n" + seller.getAdress() + "\n" + seller.getCity() + "\nNIP: " + seller.getNip();
+      final String buyerString = buyer.getName() + "\n" + buyer.getAdress() + "\n" + buyer.getCity() + "\nNIP: " + buyer.getNip();
       final PdfPTable table = new PdfPTable(2);
 
       final PdfPCell sellerHeaderCell = new PdfPCell(new Phrase("Sprzedawca:", fontBold));
@@ -130,8 +140,7 @@ public class FakturaPDF {
     * @return PdfPTable
     * @throws DocumentException When table cannot be created
     */
-   private PdfPTable productsTable() throws DocumentException {
-      List<Element> elements = faktura.getElements();
+   private PdfPTable productsTable(List<Element> elements) throws DocumentException {
 
       if (elements.isEmpty()) {
          throw new IllegalArgumentException("No elements added");
@@ -168,10 +177,12 @@ public class FakturaPDF {
       fullPriceCell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_RIGHT);
       fullPriceCell.setBorder(Rectangle.NO_BORDER);
       table.addCell(fullPriceCell);
-      table.addCell(new PdfPCell(new Paragraph(decimalFormat.format(faktura.getSum()), fontBold)));
+
+      double suma = elements.stream().mapToDouble(Element::getPrice).sum();
+      table.addCell(new PdfPCell(new Paragraph(decimalFormat.format(suma), fontBold)));
       table.addCell(new Paragraph("23%", fontBold));
-      table.addCell(new Paragraph(decimalFormat.format(faktura.getSum() * 0.23), fontBold));
-      table.addCell(new Paragraph(decimalFormat.format(faktura.getSum() * 1.23), fontBold));
+      table.addCell(new Paragraph(decimalFormat.format(suma * 0.23), fontBold));
+      table.addCell(new Paragraph(decimalFormat.format(suma * 1.23), fontBold));
       return table;
    }
 }

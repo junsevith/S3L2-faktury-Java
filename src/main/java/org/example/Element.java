@@ -1,7 +1,7 @@
 package org.example;
 
 /**
- * Represents a multiple products of the same type in faktura.
+ * Klasa reprezentująca kilka produktów tego samego typu
  */
 public class Element {
    /**

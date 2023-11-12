@@ -1,11 +1,15 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Represents a faktura.
+ * Klasa przechowywująca dane faktury.
+ * Creator:
+ * Tworzy 2 obiekty Entity, ponieważ bezpośrednio ich używa
  */
 public class Faktura {
    /**
@@ -36,9 +40,10 @@ public class Faktura {
    /**
     * Sets buyer data.
     *
-    * @param name    Buyer name
-    * @param address Buyer address
-    * @param nip     Buyer NIP
+    * @param name   Buyer name
+    * @param street Buyer address
+    * @param city   Buyer city
+    * @param nip    Buyer NIP
     */
    public void setBuyer(final String name, final String street, final String city, final String nip) {
       buyer = new Entity(name, street, city, nip);
@@ -56,8 +61,16 @@ public class Faktura {
       return buyer;
    }
 
+   public Map<String, String> getSellerData() {
+      return seller.getData();
+   }
+
+   public Map<String, String> getBuyerData() {
+      return buyer.getData();
+   }
+
    public List<Element> getElements() {
-      return elements;
+      return Collections.unmodifiableList(elements);
    }
 
    public double getSum() {

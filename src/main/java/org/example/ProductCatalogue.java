@@ -6,9 +6,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Provides access to products from database.
+ * Zadaniem klasy jest tworzenie instancji klasy product o danych pobranych z bazy danych.
+ * Stworzy ona wyłącznie produkt, który jest zawarty w bazie danych.
+ * Klasa product jest klasą wewnętrzną, aby nie dało się jej utworzyć, nie używając klasy ProductCatalogue.
+ * Creator: Tworzy instancje klasy Product, ponieważ posiada dane inicjalizujące dla Produktu
+ * Indirection: Klasa jest pośrednikiem do bazy danych
  */
 public class ProductCatalogue {
+
    /**
     * Connection to database.
     */
